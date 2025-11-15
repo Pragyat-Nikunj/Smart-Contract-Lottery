@@ -1,6 +1,6 @@
 # Smart Contract Lottery
 
-A compact, audit-friendly raffle (lottery) example written in Solidity and tested with Foundry. The contract uses Chainlink VRF v2.5 to obtain verifiable randomness when selecting a winner.
+A compact, audit-friendly raffle (lottery) written in Solidity and tested with Foundry. The contract uses Chainlink VRF v2.5 to obtain verifiable randomness when selecting a winner.
 
 ## Deployed Contract
 

@@ -62,9 +62,14 @@ contract Raffle is VRFConsumerBaseV2Plus {
     event WinnerPicked(address indexed winner);
     event RequestRaffleWinner(uint256 indexed requestId);
 
-    constructor(uint256 entranceFee, uint256 interval, address vrfCoordinator,
-     bytes32 gasLane, uint256 subscriptionId, uint32 callbackGasLimit)
-        VRFConsumerBaseV2Plus(vrfCoordinator) {
+    constructor(
+        uint256 entranceFee,
+        uint256 interval,
+        address vrfCoordinator,
+        bytes32 gasLane,
+        uint256 subscriptionId,
+        uint32 callbackGasLimit
+    ) VRFConsumerBaseV2Plus(vrfCoordinator) {
         i_entranceFee = entranceFee;
         i_interval = interval;
         i_keyHash = gasLane;
@@ -102,40 +107,49 @@ contract Raffle is VRFConsumerBaseV2Plus {
      * @return - ignored
      */
 
-    function checkUpkeep(bytes memory /*checkData*/) 
-        public 
+    function checkUpkeep(
+        bytes memory /*checkData*/
+    )
+        public
         view
-        returns (bool upkeepNeeded, bytes memory /*performData*/)
+        returns (
+            bool upkeepNeeded,
+            bytes memory /*performData*/
+        )
     {
-       bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
-       bool isOpen = s_raffleState == RaffleState.OPEN;
-       bool hasBalance = address(this).balance > 0;
-       bool hasPlayers = s_players.length > 0;
-       upkeepNeeded = timeHasPassed && isOpen && hasBalance && hasPlayers;
-       return (upkeepNeeded, "");
+        bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >= i_interval);
+        bool isOpen = s_raffleState == RaffleState.OPEN;
+        bool hasBalance = address(this).balance > 0;
+        bool hasPlayers = s_players.length > 0;
+        upkeepNeeded = timeHasPassed && isOpen && hasBalance && hasPlayers;
+        return (upkeepNeeded, "");
     }
 
     // Get a random number
     // Use random number to pick player
     // be automatically called (picks winner)
-    function performUpkeep(bytes calldata /* performData */) external {
-        (bool upkeepNeeded, ) = checkUpkeep("");
+    function performUpkeep(
+        bytes calldata /* performData */
+    )
+        external
+    {
+        (bool upkeepNeeded,) = checkUpkeep("");
         if (!upkeepNeeded) {
             revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
         }
         s_raffleState = RaffleState.CALCULATING;
 
         VRFV2PlusClient.RandomWordsRequest memory request = VRFV2PlusClient.RandomWordsRequest({
-                        keyHash: i_keyHash,
-                        subId: i_subscriptionId,
-                        requestConfirmations: REQUEST_CONFIRMATIONS,
-                        callbackGasLimit: i_callbackGasLimit,
-                        numWords: NUM_WORDS,
-                        extraArgs: VRFV2PlusClient._argsToBytes(
-                            // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                            VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-                        )
-                    });
+            keyHash: i_keyHash,
+            subId: i_subscriptionId,
+            requestConfirmations: REQUEST_CONFIRMATIONS,
+            callbackGasLimit: i_callbackGasLimit,
+            numWords: NUM_WORDS,
+            extraArgs: VRFV2PlusClient._argsToBytes(
+                // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
+                VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
+            )
+        });
         uint256 requestId = s_vrfCoordinator.requestRandomWords(request);
         emit RequestRaffleWinner(requestId);
     }
@@ -158,24 +172,26 @@ contract Raffle is VRFConsumerBaseV2Plus {
         }
     }
 
-    /** Getter Functions */
+    /**
+     * Getter Functions
+     */
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
     }
 
-    function getRaffleState() external view returns(RaffleState) {
+    function getRaffleState() external view returns (RaffleState) {
         return s_raffleState;
     }
 
-    function getPlayer(uint256 indexOfPlayer) external view returns(address) {
+    function getPlayer(uint256 indexOfPlayer) external view returns (address) {
         return s_players[indexOfPlayer];
     }
-    
-    function getLastTimeStamp() external view returns(uint256) {
+
+    function getLastTimeStamp() external view returns (uint256) {
         return s_lastTimeStamp;
     }
 
-    function getRecentWinner() external view returns(address) {
-        return  s_recentWinner;
+    function getRecentWinner() external view returns (address) {
+        return s_recentWinner;
     }
 }

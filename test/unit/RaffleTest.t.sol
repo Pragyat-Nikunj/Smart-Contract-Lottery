@@ -16,7 +16,7 @@ contract RaffleTest is CodeConstants, Test {
     uint256 entranceFee;
     uint256 interval;
     address vrfCoordinator;
-    bytes32 gasLane; 
+    bytes32 gasLane;
     uint32 callbackGasLimit;
     uint256 subscriptionId;
 
@@ -28,8 +28,8 @@ contract RaffleTest is CodeConstants, Test {
 
     function setUp() external {
         DeployRaffle deployer = new DeployRaffle();
-        (raffle, helperConfig) = deployer.deployContract(); 
-        HelperConfig.NetworkConfig memory config  = helperConfig.getConfig();
+        (raffle, helperConfig) = deployer.deployContract();
+        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
         entranceFee = config.entranceFee;
         interval = config.interval;
         vrfCoordinator = config.vrfCoordinator;
@@ -86,28 +86,30 @@ contract RaffleTest is CodeConstants, Test {
         raffle.enterRaffle{value: entranceFee}();
     }
 
-    /**Check Upkeep */
+    /**
+     * Check Upkeep
+     */
     function testCheckUpkeepReturnsFalseIfItHasNoBalance() public {
         //Arrange
         vm.warp(block.timestamp + interval + 1);
         vm.roll(block.number + 1);
 
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         // Assert
         assert(!upkeepNeeded);
     }
 
     function testCheckUpkeepIsFalseIfRaffleIsntOpen() public {
-         //Arrange
+        //Arrange
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
         vm.warp(block.timestamp + interval + 1);
         vm.roll(block.number + 1);
         raffle.performUpkeep("");
-        // Act 
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        // Act
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         //assert
         assert(!upkeepNeeded);
@@ -120,11 +122,12 @@ contract RaffleTest is CodeConstants, Test {
         vm.roll(block.number + 1);
 
         //Act
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         //assert
         assert(!upkeepNeeded);
     }
+
     function testCheckUpkeepReturnsTrueWhenParametersAreGood() public {
         // Arrange
         vm.prank(PLAYER);
@@ -133,14 +136,16 @@ contract RaffleTest is CodeConstants, Test {
         vm.roll(block.number + 1);
 
         // Act
-        (bool upkeepNeeded, ) = raffle.checkUpkeep("");
+        (bool upkeepNeeded,) = raffle.checkUpkeep("");
 
         // Assert
         assert(upkeepNeeded);
     }
 
-    /** Perform Upkeep */
-    function testPerformUpkeepCanOnlyRunIfUpkeepIsTrue() public skipFork{
+    /**
+     * Perform Upkeep
+     */
+    function testPerformUpkeepCanOnlyRunIfUpkeepIsTrue() public skipFork {
         //Arrange
         vm.prank(PLAYER);
         raffle.enterRaffle{value: entranceFee}();
@@ -163,9 +168,8 @@ contract RaffleTest is CodeConstants, Test {
         numPlayers = 1;
         //Act / Assert
         vm.expectRevert(
-            abi.encodeWithSelector(Raffle.Raffle__UpkeepNotNeeded.selector, currentBalance,
-            numPlayers, rState)
-            );
+            abi.encodeWithSelector(Raffle.Raffle__UpkeepNotNeeded.selector, currentBalance, numPlayers, rState)
+        );
 
         raffle.performUpkeep("");
     }
@@ -185,20 +189,23 @@ contract RaffleTest is CodeConstants, Test {
         Vm.Log[] memory entries = vm.getRecordedLogs();
         bytes32 requestId = entries[1].topics[1];
 
-        // Assert 
+        // Assert
         Raffle.RaffleState raffleState = raffle.getRaffleState();
         assert(uint256(requestId) > 0);
         assert(uint256(raffleState) == 1);
     }
 
-    /**Fulfill Random Words */
+    /**
+     * Fulfill Random Words
+     */
 
     modifier skipFork() {
-        if (block.chainid != LOCAL_CHAIN_ID)  {
+        if (block.chainid != LOCAL_CHAIN_ID) {
             return;
         }
         _;
     }
+
     function testFulfillrandomwordsCanOnlyBeCalledAfterPerformUpkeep(uint256 randomRequetId) public skipFork {
         // Arrange / Act / Assert
         vm.expectRevert(VRFCoordinatorV2_5Mock.InvalidRequest.selector);
